@@ -34,7 +34,7 @@ interface Recommendation {
 }
 
 // -------------------------------
-// Labels and plans
+// Labels
 // -------------------------------
 const TOOL_LABELS: Record<ToolName, string> = {
   cursor: "Cursor",
@@ -47,6 +47,9 @@ const TOOL_LABELS: Record<ToolName, string> = {
   windsurf: "Windsurf",
 };
 
+// -------------------------------
+// Plans
+// -------------------------------
 const TOOL_PLANS: Record<ToolName, string[]> = {
   cursor: ["Hobby", "Pro", "Business", "Enterprise"],
   copilot: ["Individual", "Business", "Enterprise"],
@@ -59,16 +62,22 @@ const TOOL_PLANS: Record<ToolName, string[]> = {
 };
 
 // -------------------------------
-// Main Component
+// Component
 // -------------------------------
 export default function Home() {
+
   const [tools, setTools] = useState<ToolEntry[]>([]);
+
   const [teamSize, setTeamSize] = useState(5);
 
   const [primaryUseCase, setPrimaryUseCase] =
-    useState<"coding" | "writing" | "data" | "research" | "mixed">(
-      "coding"
-    );
+    useState<
+      "coding" |
+      "writing" |
+      "data" |
+      "research" |
+      "mixed"
+    >("coding");
 
   const [loading, setLoading] = useState(false);
 
@@ -84,6 +93,8 @@ export default function Home() {
 
   const [honeypot, setHoneypot] = useState("");
 
+  const [shareableUrl, setShareableUrl] = useState("");
+
   // -------------------------------
   // Helpers
   // -------------------------------
@@ -93,17 +104,23 @@ export default function Home() {
   // Load localStorage
   // -------------------------------
   useEffect(() => {
+
     const saved = localStorage.getItem("auditForm");
 
     if (saved) {
+
       const parsed = JSON.parse(saved);
 
       setTools(parsed.tools || []);
 
       setTeamSize(parsed.teamSize || 5);
 
-      setPrimaryUseCase(parsed.primaryUseCase || "coding");
+      setPrimaryUseCase(
+        parsed.primaryUseCase || "coding"
+      );
+
     } else {
+
       setTools([
         {
           id: generateId(),
@@ -113,13 +130,16 @@ export default function Home() {
           seats: 2,
         },
       ]);
+
     }
+
   }, []);
 
   // -------------------------------
   // Save localStorage
   // -------------------------------
   useEffect(() => {
+
     if (tools.length === 0) return;
 
     localStorage.setItem(
@@ -130,12 +150,29 @@ export default function Home() {
         primaryUseCase,
       })
     );
+
   }, [tools, teamSize, primaryUseCase]);
 
   // -------------------------------
-  // Tool handlers
+  // Share URL
+  // -------------------------------
+  useEffect(() => {
+
+    if (auditResult) {
+
+      setShareableUrl(
+        `${window.location.origin}/audit/${generateId()}`
+      );
+
+    }
+
+  }, [auditResult]);
+
+  // -------------------------------
+  // Add Tool
   // -------------------------------
   const addTool = () => {
+
     setTools([
       ...tools,
       {
@@ -146,33 +183,50 @@ export default function Home() {
         seats: 1,
       },
     ]);
+
   };
 
+  // -------------------------------
+  // Remove Tool
+  // -------------------------------
   const removeTool = (id: string) => {
+
     if (tools.length === 1) return;
 
-    setTools(tools.filter((t) => t.id !== id));
+    setTools(
+      tools.filter((t) => t.id !== id)
+    );
+
   };
 
+  // -------------------------------
+  // Update Tool
+  // -------------------------------
   const updateTool = (
     id: string,
     field: keyof ToolEntry,
     value: string | number
   ) => {
+
     setTools(
       tools.map((t) =>
-        t.id === id ? { ...t, [field]: value } : t
+        t.id === id
+          ? { ...t, [field]: value }
+          : t
       )
     );
+
   };
 
   // -------------------------------
   // Audit
   // -------------------------------
   const handleAudit = () => {
+
     setLoading(true);
 
     setTimeout(() => {
+
       const result = runAudit(
         tools,
         teamSize,
@@ -184,15 +238,18 @@ export default function Home() {
       setLoading(false);
 
       setShowLeadModal(true);
+
     }, 500);
+
   };
 
   // -------------------------------
-  // Lead submit
+  // Lead Submit
   // -------------------------------
   const handleLeadSubmit = async (
     e: React.FormEvent
   ) => {
+
     e.preventDefault();
 
     if (honeypot) return;
@@ -205,7 +262,9 @@ export default function Home() {
       },
     ]);
 
-    alert(`Report saved for ${leadEmail}`);
+    alert(
+      `Report saved for ${leadEmail}`
+    );
 
     setShowLeadModal(false);
 
@@ -214,14 +273,8 @@ export default function Home() {
     setLeadCompany("");
 
     setLeadRole("");
-  };
 
-  // -------------------------------
-  // Shareable URL
-  // -------------------------------
-  const shareableUrl = auditResult
-    ? `${window.location.origin}/audit/${generateId()}`
-    : "";
+  };
 
   // -------------------------------
   // Prevent hydration mismatch
@@ -235,6 +288,7 @@ export default function Home() {
   // -------------------------------
   return (
     <main className="min-h-screen bg-black text-white p-4 md:p-10">
+
       <div className="max-w-4xl mx-auto">
 
         <h1 className="text-5xl font-bold mb-4 text-center">
@@ -253,10 +307,12 @@ export default function Home() {
           </h2>
 
           {tools.map((toolEntry) => (
+
             <div
               key={toolEntry.id}
               className="border border-zinc-700 p-4 rounded-lg mb-4"
             >
+
               <div className="flex gap-2 flex-wrap mb-2">
 
                 <select
@@ -270,13 +326,20 @@ export default function Home() {
                     )
                   }
                 >
-                  {Object.entries(TOOL_LABELS).map(
-                    ([val, label]) => (
-                      <option key={val} value={val}>
-                        {label}
-                      </option>
-                    )
-                  )}
+
+                  {Object.entries(
+                    TOOL_LABELS
+                  ).map(([val, label]) => (
+
+                    <option
+                      key={val}
+                      value={val}
+                    >
+                      {label}
+                    </option>
+
+                  ))}
+
                 </select>
 
                 <select
@@ -290,18 +353,24 @@ export default function Home() {
                     )
                   }
                 >
-                  {TOOL_PLANS[toolEntry.tool].map(
-                    (plan) => (
-                      <option key={plan}>
-                        {plan}
-                      </option>
-                    )
-                  )}
+
+                  {TOOL_PLANS[
+                    toolEntry.tool
+                  ].map((plan) => (
+
+                    <option key={plan}>
+                      {plan}
+                    </option>
+
+                  ))}
+
                 </select>
 
                 <button
                   onClick={() =>
-                    removeTool(toolEntry.id)
+                    removeTool(
+                      toolEntry.id
+                    )
                   }
                   className="bg-red-600 px-3 rounded"
                 >
@@ -316,12 +385,16 @@ export default function Home() {
                   type="number"
                   placeholder="Monthly spend"
                   className="flex-1 p-2 rounded bg-zinc-800"
-                  value={toolEntry.monthlySpend}
+                  value={
+                    toolEntry.monthlySpend
+                  }
                   onChange={(e) =>
                     updateTool(
                       toolEntry.id,
                       "monthlySpend",
-                      Number(e.target.value)
+                      Number(
+                        e.target.value
+                      )
                     )
                   }
                 />
@@ -335,13 +408,17 @@ export default function Home() {
                     updateTool(
                       toolEntry.id,
                       "seats",
-                      Number(e.target.value)
+                      Number(
+                        e.target.value
+                      )
                     )
                   }
                 />
 
               </div>
+
             </div>
+
           ))}
 
           <button
@@ -354,6 +431,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-4">
 
             <div>
+
               <label className="block text-zinc-400 mb-1">
                 Team size
               </label>
@@ -363,12 +441,18 @@ export default function Home() {
                 className="w-full p-2 rounded bg-zinc-800"
                 value={teamSize}
                 onChange={(e) =>
-                  setTeamSize(Number(e.target.value))
+                  setTeamSize(
+                    Number(
+                      e.target.value
+                    )
+                  )
                 }
               />
+
             </div>
 
             <div>
+
               <label className="block text-zinc-400 mb-1">
                 Primary use case
               </label>
@@ -382,6 +466,7 @@ export default function Home() {
                   )
                 }
               >
+
                 <option value="coding">
                   Coding
                 </option>
@@ -403,6 +488,7 @@ export default function Home() {
                 </option>
 
               </select>
+
             </div>
 
           </div>
@@ -412,15 +498,18 @@ export default function Home() {
             disabled={loading}
             className="w-full mt-6 bg-white text-black p-3 rounded font-bold"
           >
+
             {loading
               ? "Auditing..."
               : "Audit My Spend"}
+
           </button>
 
         </div>
 
         {/* RESULTS */}
         {auditResult && (
+
           <div className="bg-zinc-900 p-6 rounded-2xl">
 
             <h2 className="text-3xl font-bold mb-4">
@@ -430,65 +519,92 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-4 mb-6">
 
               <div className="bg-green-900/30 p-4 rounded-lg text-center">
+
                 <div className="text-2xl text-green-400">
-                  ${auditResult.totalMonthly}
+                  $
+                  {auditResult.totalMonthly}
                 </div>
 
                 <div>
                   Monthly savings
                 </div>
+
               </div>
 
               <div className="bg-green-900/30 p-4 rounded-lg text-center">
+
                 <div className="text-2xl text-green-400">
-                  ${auditResult.totalAnnual}
+                  $
+                  {auditResult.totalAnnual}
                 </div>
 
                 <div>
                   Annual savings
                 </div>
+
               </div>
 
             </div>
 
             {auditResult.recommendations.map(
-              (rec: Recommendation, idx: number) => (
+              (
+                rec: Recommendation,
+                idx: number
+              ) => (
+
                 <div
                   key={idx}
                   className="border-l-4 border-blue-500 pl-4 mb-4"
                 >
+
                   <div className="font-bold">
-                    {TOOL_LABELS[rec.tool]}
+                    {
+                      TOOL_LABELS[
+                        rec.tool
+                      ]
+                    }
                   </div>
 
                   <div>
-                    {rec.recommendedAction}
+                    {
+                      rec.recommendedAction
+                    }
                   </div>
 
                   <div className="text-green-400">
+
                     Save $
-                    {rec.potentialSavings}
+                    {
+                      rec.potentialSavings
+                    }
                     /month
+
                   </div>
 
                   <div className="text-zinc-400 text-sm">
                     {rec.reason}
                   </div>
+
                 </div>
+
               )
             )}
 
             <p className="text-xs text-zinc-500 mt-6">
+
               Shareable URL:
               {" "}
               {shareableUrl}
+
             </p>
 
           </div>
+
         )}
 
-        {/* LEAD MODAL */}
+        {/* MODAL */}
         {showLeadModal && (
+
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
 
             <div className="bg-zinc-900 rounded-2xl max-w-md w-full p-6">
@@ -497,7 +613,11 @@ export default function Home() {
                 Get your report
               </h3>
 
-              <form onSubmit={handleLeadSubmit}>
+              <form
+                onSubmit={
+                  handleLeadSubmit
+                }
+              >
 
                 <input
                   type="email"
@@ -506,7 +626,9 @@ export default function Home() {
                   required
                   value={leadEmail}
                   onChange={(e) =>
-                    setLeadEmail(e.target.value)
+                    setLeadEmail(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -516,7 +638,9 @@ export default function Home() {
                   className="w-full p-2 rounded bg-zinc-800 mb-3"
                   value={leadCompany}
                   onChange={(e) =>
-                    setLeadCompany(e.target.value)
+                    setLeadCompany(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -526,7 +650,9 @@ export default function Home() {
                   className="w-full p-2 rounded bg-zinc-800 mb-3"
                   value={leadRole}
                   onChange={(e) =>
-                    setLeadRole(e.target.value)
+                    setLeadRole(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -535,7 +661,9 @@ export default function Home() {
                   className="hidden"
                   value={honeypot}
                   onChange={(e) =>
-                    setHoneypot(e.target.value)
+                    setHoneypot(
+                      e.target.value
+                    )
                   }
                 />
 
@@ -551,9 +679,11 @@ export default function Home() {
             </div>
 
           </div>
+
         )}
 
       </div>
+
     </main>
   );
 }
